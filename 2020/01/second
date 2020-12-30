@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'pathname'
+
+module Subject
+  module_function
+
+  TARGET = 2020
+
+  # Nasty first approach
+  #
+  # Complexity:
+  #   - Time:  O()
+  #   - Space: O(1)
+  #
+  def brute_force(file)
+    entries = file.readlines.map(&:to_i)
+
+    entries.each_with_index do |line_1, idx_1|
+      entries[idx_1 + 1.. entries.size - 1].each_with_index do |line_2, idx_2|
+        entries[idx_2 + 1.. entries.size - 2].each do |line_3|
+          sum = line_1 + line_2 + line_3
+          return line_1 * line_2 * line_3 if sum == TARGET
+        end
+      end
+    end
+  end
+
+  # Only works on small input, loads all lines in memory
+  #
+  # Complexity:
+  #   - Time:  O()
+  #   - Space: O(n!)
+  #
+  def idiomatic(file)
+    file.readlines
+        .map(&:to_i)
+        .combination(3)
+        .find { |pair| pair.sum == TARGET }
+        .reduce(1, :*)
+  end
+
+  # Most performant, tracking seen values with hash
+  #
+  # Complexity:
+  #   - Time:  O()
+  #   - Space: O(1)
+  #
+  def three_sum(file)
+    IO.foreach(file).with_object({}) do |line, hsh|
+      num = line.to_i
+      comps = Logic.two_sum(num, hsh)
+
+      return comps.flatten.push(num).reduce(1, :*) if comps.any?
+
+      hsh[num] = true
+    end
+  end
+
+  module Logic
+    module_function
+
+    def two_sum(num, seen)
+      comp_sum = TARGET - num
+
+      seen.keys.detect.with_object([]) do |key, comps|
+        comp = comp_sum - key
+        comps << [comp, key] if seen[comp] && comp + key == comp_sum
+      end
+    end
+  end
+end
+
+Benchmark.bm do |x|
+  x.report("Brute Force   : ") { p Subject.brute_force(Pathname(ARGV.first)) }
+  x.report("Idiomatic ruby: ") { p Subject.idiomatic(Pathname(ARGV.first)) }
+  x.report("With hash     : ") { p Subject.three_sum(Pathname(ARGV.first)) }
+end

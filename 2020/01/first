@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'pathname'
+
+module Subject
+  module_function
+
+  TARGET = 2020
+
+  # Efficient for large files, yielding one line at a time
+  #
+  # Complexity:
+  #   - Time:  O(n)
+  #   - Space: O(1)
+  #
+  def two_sum(file)
+    IO.foreach(file).with_object({}) do |line, hsh|
+      num   = line.to_i
+      comp  = TARGET - num
+
+      return (comp * num) if hsh[comp]
+
+      hsh[num] = true
+    end
+  end
+
+  # Only works on small input, loads all lines in memory
+  #
+  # Complexity:
+  #   - Time:  O()
+  #   - Space: O()
+  #
+  def idiomatic(file)
+    file.readlines
+        .map(&:to_i)
+        .combination(2)
+        .find { |pair| pair.sum == TARGET }
+        .reduce(1, :*)
+  end
+end
+
+Benchmark.bm do |x|
+  x.report("One-pass w/ hash: ") { p Subject.two_sum(Pathname(ARGV.first)) }
+  x.report("Idiomatic ruby  : ") { p Subject.idiomatic(Pathname(ARGV.first)) }
+end
