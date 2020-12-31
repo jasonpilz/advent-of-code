@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'pathname'
+
+module PartOne
+  module_function
+
+  def call(file)
+  end
+end
+
+module PartTwo
+  module_function
+
+  def call(file)
+  end
+end
+
+Benchmark.bm do |x|
+  x.report("Part One: ") { p PartOne.(Pathname(ARGV.first)) }
+  x.report("Part Two: ") { p PartTwo.(Pathname(ARGV.first)) }
+end
