@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'pathname'
+
+module PartOne
+  module_function
+
+  # Efficient for large files, yielding one line at a time
+  #
+  # Complexity:
+  #   - Time:  O(n)
+  #   - Space: O(1)
+  #
+  def call(file)
+    IO.foreach(file).reduce(0) do |res, line|
+      /^(?<min>\d+)-(?<max>\d+) (?<chr>.): (?<pwd>.*)$/ =~ line
+
+      pwd
+        .chars
+        .count(&chr.method(:==))
+        .between?(min.to_i, max.to_i) ? res += 1 : res
+    end
+  end
+end
+
+module PartTwo
+  module_function
+
+  # Efficient for large files, yielding one line at a time
+  #
+  # Complexity:
+  #   - Time:  O(n)
+  #   - Space: O(1)
+  #
+  def call(file)
+    IO.foreach(file).reduce(0) do |res, line|
+      /^(?<min>\d+)-(?<max>\d+) (?<chr>.): (?<pwd>.*)$/ =~ line
+
+      [min.to_i, max.to_i]
+        .map { |i| pwd[i-1] }
+        .one?(chr) ? res += 1 : res
+    end
+  end
+end
+
+Benchmark.bm do |x|
+  x.report("Part One: ") { p PartOne.(Pathname(ARGV.first)) }
+  x.report("Part Two: ") { p PartTwo.(Pathname(ARGV.first)) }
+end
