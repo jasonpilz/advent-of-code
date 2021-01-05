@@ -3,44 +3,43 @@
 require 'benchmark'
 require 'pathname'
 
-module PartOne
-  module_function
+module Subject
+  module Logic
+    module_function
 
-  # Efficient for large files, yielding one line at a time
-  #
-  # Complexity:
-  #   - Time:  O(n)
-  #   - Space: O(1)
-  #
-  def call(file)
-    IO.foreach(file).with_index.reduce(0) do |res, (lne, idx)|
-      lne[idx * 3 % lne.strip.size] == '#' ? res += 1 : res
+    def call(ary, x, y)
+      (0...ary.size).step(y).reduce(0) do |res, idx|
+        lne = ary[idx]
+
+        lne[idx/y * x % lne.size] == '#' ? res += 1 : res
+      end
+
+      # #count far less performant
+      #
+      # (0...ary.size).step(y).count do |idx|
+      #   lne = ary[idx]
+
+      #   lne[idx/y * x % lne.size] == '#'
+      # end
     end
   end
 
-  # Complexity:
-  #   - Time:  O(n)
-  #   - Space: O(n)
-  #
-  def alt(file)
-    file
-      .readlines
-      .map(&:strip)
-      .each_with_index
-      .count { |line, idx| line[idx * 3 % line.size] == '#' }
-  end
-end
-
-module PartTwo
   module_function
 
-  def call(file)
+  def part_one(file, x, y)
+    lines = file.readlines(chomp: true)
+
+    Logic.(lines, x, y)
+  end
+
+  def part_two(file, slopes)
+    lines = file.readlines(chomp: true)
+
+    slopes.map { |x, y| Logic.(lines, x, y) }.reduce(1, :*)
   end
 end
 
 Benchmark.bm do |x|
-  x.report("Part One       : ") { p PartOne.(Pathname(ARGV.first)) }
-  x.report("Part One (alt) : ") { p PartOne.alt(Pathname(ARGV.first)) }
-
-  x.report("Part Two       : ") { p PartTwo.(Pathname(ARGV.first)) }
+  x.report("Part One: ") { p Subject.part_one(Pathname(ARGV.first), 3, 1) }
+  x.report("Part Two: ") { p Subject.part_two(Pathname(ARGV.first), [[1, 1], [3, 1], [5, 1], [7, 1], [1, 2]]) }
 end
